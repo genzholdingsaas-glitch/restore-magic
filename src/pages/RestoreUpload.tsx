@@ -4,6 +4,7 @@ import { useRestoreFlow } from '@/context/RestoreFlowContext';
 import { ArrowLeft, Upload, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import exampleRestore from '@/assets/example-restore.png';
 
 const RestoreUpload = () => {
   const navigate = useNavigate();
@@ -23,13 +24,29 @@ const RestoreUpload = () => {
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <div className="flex items-center gap-3 px-5 pt-14 pb-4">
-        <button onClick={() => navigate('/')} className="rounded-full p-1 hover:bg-muted transition-colors">
+        <button onClick={() => navigate('/home')} className="rounded-full p-1 hover:bg-muted transition-colors">
           <ArrowLeft className="h-5 w-5 text-foreground" />
         </button>
         <h1 className="text-lg font-bold text-foreground">Restaurar foto</h1>
       </div>
 
       <div className="px-5">
+        {/* Example before/after */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-5 overflow-hidden rounded-2xl bg-card shadow-card"
+        >
+          <img
+            src={exampleRestore}
+            alt="Exemplo de restauração: antes e depois"
+            className="w-full object-cover"
+          />
+          <p className="px-3 py-2 text-center text-xs text-muted-foreground">
+            Exemplo de restauração com IA ✨
+          </p>
+        </motion.div>
+
         {/* Upload area */}
         <input
           ref={inputRef}
