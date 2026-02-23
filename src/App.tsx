@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RestoreFlowProvider } from "@/context/RestoreFlowContext";
 import BottomNav from "@/components/BottomNav";
+import LandingPage from "./pages/LandingPage";
 import Home from "./pages/Home";
 import RestoreUpload from "./pages/RestoreUpload";
 import RestoreForm from "./pages/RestoreForm";
@@ -26,7 +27,8 @@ const App = () => (
         <BrowserRouter>
           <div className="mx-auto max-w-lg min-h-screen">
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/home" element={<Home />} />
               <Route path="/restore" element={<RestoreUpload />} />
               <Route path="/restore/form" element={<RestoreForm />} />
               <Route path="/restore/offer" element={<DiscountOffer />} />

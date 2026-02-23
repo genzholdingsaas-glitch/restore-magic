@@ -2,7 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Clock, User } from 'lucide-react';
 
 const tabs = [
-  { to: '/', icon: Home, label: 'Início' },
+  { to: '/home', icon: Home, label: 'Início' },
   { to: '/history', icon: Clock, label: 'Histórico' },
   { to: '/profile', icon: User, label: 'Perfil' },
 ];
@@ -11,7 +11,7 @@ const BottomNav = () => {
   const location = useLocation();
   // Hide nav during restore flow
   const hideOn = ['/restore', '/restore/form', '/restore/offer', '/restore/processing', '/restore/result'];
-  if (hideOn.some(p => location.pathname.startsWith(p))) return null;
+  if (hideOn.some(p => location.pathname.startsWith(p)) || location.pathname === '/') return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md">
