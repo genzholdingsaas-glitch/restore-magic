@@ -2,7 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { Camera, Sparkles, Shield, Zap, ArrowRight, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import exampleRestore from '@/assets/example-restore.png';
+import beforePortrait from '@/assets/example-before-portrait.png';
+import afterPortrait from '@/assets/example-after-portrait.png';
+import beforeStreet from '@/assets/example-before-street.png';
+import afterStreet from '@/assets/example-after-street.png';
 
 const features = [
   {
@@ -26,6 +29,11 @@ const steps = [
   { num: '1', title: 'Envie sua foto', desc: 'Escolha a foto antiga que deseja restaurar' },
   { num: '2', title: 'Preencha seus dados', desc: 'Informe nome, email e celular' },
   { num: '3', title: 'Receba o resultado', desc: 'Nossa IA restaura a imagem em minutos' },
+];
+
+const examples = [
+  { before: beforePortrait, after: afterPortrait, label: 'Retrato restaurado' },
+  { before: beforeStreet, after: afterStreet, label: 'Foto colorizada' },
 ];
 
 const LandingPage = () => {
@@ -53,24 +61,10 @@ const LandingPage = () => {
           </p>
         </motion.div>
 
-        {/* Example image */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.15 }}
-          className="mx-auto mt-8 max-w-sm overflow-hidden rounded-2xl shadow-accent"
-        >
-          <img
-            src={exampleRestore}
-            alt="Exemplo de foto restaurada: antes e depois"
-            className="w-full object-cover"
-          />
-        </motion.div>
-
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2 }}
           className="mt-8 text-center"
         >
           <Button
@@ -81,6 +75,38 @@ const LandingPage = () => {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </motion.div>
+      </section>
+
+      {/* Before / After Examples */}
+      <section className="px-5 py-12">
+        <h2 className="mb-8 text-center text-xl font-bold text-foreground">Veja os resultados</h2>
+        <div className="space-y-6">
+          {examples.map((ex, i) => (
+            <motion.div
+              key={ex.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * i }}
+              className="overflow-hidden rounded-2xl bg-card shadow-card"
+            >
+              <div className="grid grid-cols-2">
+                <div className="relative">
+                  <img src={ex.before} alt={`Antes - ${ex.label}`} className="h-full w-full object-cover" />
+                  <span className="absolute bottom-2 left-2 rounded-full bg-foreground/70 px-2 py-0.5 text-[10px] font-bold text-background">
+                    ANTES
+                  </span>
+                </div>
+                <div className="relative">
+                  <img src={ex.after} alt={`Depois - ${ex.label}`} className="h-full w-full object-cover" />
+                  <span className="absolute bottom-2 right-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold text-accent-foreground">
+                    DEPOIS
+                  </span>
+                </div>
+              </div>
+              <p className="px-4 py-3 text-center text-sm font-semibold text-foreground">{ex.label}</p>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       {/* How it works */}
