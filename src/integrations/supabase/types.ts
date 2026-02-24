@@ -14,7 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          discount_label: string | null
+          discount_price_cents: number | null
+          id: string
+          input_image_url: string | null
+          original_price_cents: number | null
+          output_image_url: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_label?: string | null
+          discount_price_cents?: number | null
+          id?: string
+          input_image_url?: string | null
+          original_price_cents?: number | null
+          output_image_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_label?: string | null
+          discount_price_cents?: number | null
+          id?: string
+          input_image_url?: string | null
+          original_price_cents?: number | null
+          output_image_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
