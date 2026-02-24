@@ -24,7 +24,7 @@ const RestoreUpload = () => {
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <div className="flex items-center gap-3 px-5 pt-14 pb-4">
-        <button onClick={() => navigate('/home')} className="rounded-full p-1 hover:bg-muted transition-colors">
+        <button onClick={() => navigate('/')} className="rounded-full p-1 hover:bg-muted transition-colors">
           <ArrowLeft className="h-5 w-5 text-foreground" />
         </button>
         <h1 className="text-lg font-bold text-foreground">Restaurar foto</h1>

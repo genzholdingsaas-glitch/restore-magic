@@ -27,8 +27,8 @@ const App = () => (
         <BrowserRouter>
           <div className="mx-auto max-w-lg min-h-screen">
             <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/home" element={<Home />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/restore" element={<RestoreUpload />} />
               <Route path="/restore/form" element={<RestoreForm />} />
               <Route path="/restore/offer" element={<DiscountOffer />} />
