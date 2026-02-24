@@ -4,20 +4,57 @@ import { useRestoreFlow } from '@/context/RestoreFlowContext';
 import { ArrowLeft, Upload, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import exampleRestore from '@/assets/example-restore.png';
 
 const RestoreUpload = () => {
   const navigate = useNavigate();
   const { flow, setImageUri } = useRestoreFlow();
   const [preview, setPreview] = useState<string | null>(flow.imageUri);
+  const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<File | null>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    fileRef.current = file;
     const url = URL.createObjectURL(file);
     setPreview(url);
     setImageUri(url);
+  };
+
+  const handleContinue = async () => {
+    if (!fileRef.current && !flow.imageUri) return;
+
+    // If we have a file, upload to storage
+    if (fileRef.current) {
+      setUploading(true);
+      try {
+        const ext = fileRef.current.name.split('.').pop() || 'jpg';
+        const path = `input/${Date.now()}.${ext}`;
+        const { error } = await supabase.storage
+          .from('restorations')
+          .upload(path, fileRef.current, { contentType: fileRef.current.type });
+
+        if (error) throw error;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('restorations')
+          .getPublicUrl(path);
+
+        setImageUri(publicUrlData.publicUrl);
+      } catch (err) {
+        console.error('Upload error:', err);
+        toast.error('Erro ao enviar imagem. Tente novamente.');
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    navigate('/restore/form');
   };
 
   return (
@@ -108,11 +145,11 @@ const RestoreUpload = () => {
           className="mt-6"
         >
           <Button
-            onClick={() => navigate('/restore/form')}
-            disabled={!preview}
+            onClick={handleContinue}
+            disabled={!preview || uploading}
             className="w-full rounded-xl py-6 text-base font-bold gradient-accent text-accent-foreground shadow-accent disabled:opacity-40 disabled:shadow-none"
           >
-            Restaurar imagem
+            {uploading ? 'Enviando…' : 'Restaurar imagem'}
           </Button>
         </motion.div>
       </div>
