@@ -1,41 +1,93 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRestoreFlow } from '@/context/RestoreFlowContext';
+import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { Loader2, Home, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const stages = [
-  { status: 'QUEUED', label: 'Na fila…', progress: 20 },
-  { status: 'RUNNING', label: 'Restaurando sua foto…', progress: 60 },
-  { status: 'FINISHING', label: 'Finalizando…', progress: 90 },
-];
+import { toast } from 'sonner';
 
 const Processing = () => {
   const navigate = useNavigate();
   const { flow, setStatus, setOutputImageUrl } = useRestoreFlow();
-  const [stageIdx, setStageIdx] = useState(0);
+  const [label, setLabel] = useState('Enviando para restauração…');
+  const [progress, setProgress] = useState(15);
   const [failed, setFailed] = useState(false);
+  const calledRef = useRef(false);
 
-  // Simulate processing
   useEffect(() => {
-    setStatus('PROCESSING');
-    const timers: ReturnType<typeof setTimeout>[] = [];
+    if (calledRef.current) return;
+    calledRef.current = true;
 
-    timers.push(setTimeout(() => setStageIdx(1), 2000));
-    timers.push(setTimeout(() => setStageIdx(2), 5000));
-    timers.push(
-      setTimeout(() => {
-        // Simulate success — use original image as "restored" for demo
-        setOutputImageUrl(flow.imageUri ?? '');
+    const run = async () => {
+      try {
+        setStatus('PROCESSING');
+
+        // Create the order in the database
+        const { data: order, error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            status: 'PROCESSING',
+            input_image_url: flow.imageUri,
+            customer_name: flow.customer?.fullName,
+            customer_email: flow.customer?.email,
+            customer_phone: flow.customer?.phone,
+            original_price_cents: Math.round(flow.pricing.originalPrice * 100),
+            discount_price_cents: Math.round(flow.pricing.discountPrice * 100),
+          })
+          .select('id')
+          .single();
+
+        if (orderError || !order) throw new Error(orderError?.message || 'Failed to create order');
+
+        setLabel('Restaurando sua foto com IA…');
+        setProgress(40);
+
+        // Call edge function
+        const resp = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/restore-image`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              orderId: order.id,
+              imageUrl: flow.imageUri,
+            }),
+          }
+        );
+
+        setProgress(80);
+        setLabel('Finalizando…');
+
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          if (resp.status === 429) {
+            toast.error('Limite de requisições excedido. Tente novamente em alguns minutos.');
+          } else if (resp.status === 402) {
+            toast.error('Créditos de IA esgotados.');
+          } else {
+            toast.error(errData.error || 'Erro ao processar imagem.');
+          }
+          setFailed(true);
+          return;
+        }
+
+        const result = await resp.json();
+        setProgress(100);
+        setOutputImageUrl(result.outputImageUrl);
         navigate('/restore/result');
-      }, 7000)
-    );
+      } catch (err) {
+        console.error('Processing error:', err);
+        toast.error('Erro ao processar sua foto.');
+        setFailed(true);
+      }
+    };
 
-    return () => timers.forEach(clearTimeout);
+    run();
   }, []);
-
-  const stage = stages[stageIdx];
 
   if (failed) {
     return (
@@ -52,7 +104,7 @@ const Processing = () => {
             className="gradient-accent text-accent-foreground"
             onClick={() => {
               setFailed(false);
-              setStageIdx(0);
+              calledRef.current = false;
             }}
           >
             Tentar novamente
@@ -70,14 +122,13 @@ const Processing = () => {
         className="flex flex-col items-center text-center"
       >
         <Loader2 className="h-12 w-12 text-accent animate-spin" />
-        <h2 className="mt-6 text-xl font-bold text-foreground">{stage.label}</h2>
+        <h2 className="mt-6 text-xl font-bold text-foreground">{label}</h2>
 
-        {/* Progress bar */}
         <div className="mt-6 w-64 h-2 rounded-full bg-muted overflow-hidden">
           <motion.div
             className="h-full gradient-accent rounded-full"
             initial={{ width: '10%' }}
-            animate={{ width: `${stage.progress}%` }}
+            animate={{ width: `${progress}%` }}
             transition={{ duration: 1, ease: 'easeOut' }}
           />
         </div>
