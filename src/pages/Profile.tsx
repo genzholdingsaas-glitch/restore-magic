@@ -1,12 +1,26 @@
 import { motion } from 'framer-motion';
-import { User, HelpCircle, FileText, LogOut, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User, HelpCircle, FileText, LogOut, LogIn, ChevronRight } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Você saiu da conta');
+    navigate('/');
+  };
+
   const menuItems = [
     { icon: HelpCircle, label: 'Suporte', action: () => {} },
     { icon: FileText, label: 'Termos de Uso', action: () => {} },
     { icon: FileText, label: 'Política de Privacidade', action: () => {} },
-    { icon: LogOut, label: 'Sair', action: () => {}, destructive: true },
+    ...(user
+      ? [{ icon: LogOut, label: 'Sair', action: handleSignOut, destructive: true }]
+      : [{ icon: LogIn, label: 'Entrar', action: () => navigate('/auth') }]),
   ];
 
   return (
@@ -26,8 +40,12 @@ const Profile = () => {
             <User className="h-7 w-7 text-accent" />
           </div>
           <div>
-            <p className="font-bold text-foreground">Usuário</p>
-            <p className="text-sm text-muted-foreground">Faça login para ver seus dados</p>
+            <p className="font-bold text-foreground">
+              {user?.user_metadata?.full_name || user?.email || 'Visitante'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {user ? user.email : 'Faça login para ver seus dados'}
+            </p>
           </div>
         </motion.div>
       </div>
@@ -42,7 +60,7 @@ const Profile = () => {
             transition={{ delay: 0.1 + i * 0.05 }}
             onClick={item.action}
             className={`flex w-full items-center gap-3 rounded-xl px-4 py-3.5 transition-colors hover:bg-muted ${
-              item.destructive ? 'text-destructive' : 'text-foreground'
+              (item as any).destructive ? 'text-destructive' : 'text-foreground'
             }`}
           >
             <item.icon className="h-5 w-5" />

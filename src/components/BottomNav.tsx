@@ -9,7 +9,7 @@ const tabs = [
 
 const BottomNav = () => {
   const location = useLocation();
-  const hideOn = ['/restore', '/restore/form', '/restore/offer', '/restore/processing', '/restore/result', '/landing'];
+  const hideOn = ['/restore', '/restore/form', '/restore/offer', '/restore/processing', '/restore/result', '/landing', '/auth'];
   if (hideOn.some(p => location.pathname.startsWith(p))) return null;
 
   return (

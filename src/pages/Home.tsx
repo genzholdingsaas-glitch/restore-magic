@@ -1,9 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { Camera, Users, Palette, Sparkles, ChevronRight, Lock } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Camera, Users, Palette, Sparkles, ChevronRight, Lock, LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const comingSoon = [
     { icon: Users, label: 'Juntar duas pessoas', desc: 'Combine rostos em uma foto' },
@@ -14,17 +17,24 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <div className="px-5 pt-14 pb-6">
-        <motion.h1
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-2xl font-bold text-foreground"
-        >
-          FotoRestaurar
-        </motion.h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Dê nova vida às suas fotos antigas ✨
-        </p>
+      <div className="flex items-center justify-between px-5 pt-14 pb-6">
+        <div>
+          <motion.h1
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-2xl font-bold text-foreground"
+          >
+            FotoRestaurar
+          </motion.h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Dê nova vida às suas fotos antigas ✨
+          </p>
+        </div>
+        {!user && (
+          <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="rounded-full">
+            <LogIn className="mr-1.5 h-4 w-4" /> Entrar
+          </Button>
+        )}
       </div>
 
       {/* Main CTA Card */}

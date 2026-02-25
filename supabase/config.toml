@@ -2,3 +2,6 @@ project_id = "jkjvqtymzfcpknalxicv"
 
 [functions.restore-image]
 verify_jwt = false
+
+[functions.create-payment]
+verify_jwt = false
