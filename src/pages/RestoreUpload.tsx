@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRestoreFlow } from '@/context/RestoreFlowContext';
+import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Upload, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import exampleRestore from '@/assets/example-restore.png';
 
 const RestoreUpload = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { flow, setImageUri } = useRestoreFlow();
   const [preview, setPreview] = useState<string | null>(flow.imageUri);
   const [uploading, setUploading] = useState(false);
@@ -27,6 +29,11 @@ const RestoreUpload = () => {
 
   const handleContinue = async () => {
     if (!fileRef.current && !flow.imageUri) return;
+    if (!user) {
+      toast.info('Faça login para continuar');
+      navigate('/auth');
+      return;
+    }
 
     // If we have a file, upload to storage
     if (fileRef.current) {

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRestoreFlow } from '@/context/RestoreFlowContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
@@ -9,9 +9,10 @@ import { toast } from 'sonner';
 
 const Processing = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { flow, setStatus, setOutputImageUrl } = useRestoreFlow();
-  const [label, setLabel] = useState('Enviando para restauração…');
-  const [progress, setProgress] = useState(15);
+  const [label, setLabel] = useState('Verificando pagamento…');
+  const [progress, setProgress] = useState(10);
   const [failed, setFailed] = useState(false);
   const calledRef = useRef(false);
 
@@ -21,26 +22,25 @@ const Processing = () => {
 
     const run = async () => {
       try {
+        const orderId = searchParams.get('order_id') || flow.orderId;
+        const imageUrl = flow.imageUri;
+
+        if (!orderId) {
+          toast.error('Pedido não encontrado');
+          setFailed(true);
+          return;
+        }
+
         setStatus('PROCESSING');
-
-        // Create the order in the database
-        const { data: order, error: orderError } = await supabase
-          .from('orders')
-          .insert({
-            status: 'PROCESSING',
-            input_image_url: flow.imageUri,
-            customer_name: flow.customer?.fullName,
-            customer_email: flow.customer?.email,
-            customer_phone: flow.customer?.phone,
-            original_price_cents: Math.round(flow.pricing.originalPrice * 100),
-            discount_price_cents: Math.round(flow.pricing.discountPrice * 100),
-          })
-          .select('id')
-          .single();
-
-        if (orderError || !order) throw new Error(orderError?.message || 'Failed to create order');
-
+        setProgress(20);
         setLabel('Restaurando sua foto com IA…');
+
+        // Update order to PROCESSING
+        await supabase
+          .from('orders')
+          .update({ status: 'PROCESSING' })
+          .eq('id', orderId);
+
         setProgress(40);
 
         // Call edge function
@@ -53,8 +53,8 @@ const Processing = () => {
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
             body: JSON.stringify({
-              orderId: order.id,
-              imageUrl: flow.imageUri,
+              orderId,
+              imageUrl: imageUrl,
             }),
           }
         );

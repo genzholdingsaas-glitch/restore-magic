@@ -1,21 +1,66 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRestoreFlow } from '@/context/RestoreFlowContext';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, PartyPopper, AlertTriangle } from 'lucide-react';
+import { Gift, PartyPopper, AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const DiscountOffer = () => {
   const navigate = useNavigate();
   const { flow, setStatus } = useRestoreFlow();
+  const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
-  const firstName = flow.customer?.fullName.split(' ')[0] ?? 'Amigo';
+  const [paying, setPaying] = useState(false);
+  const firstName = flow.customer?.fullName.split(' ')[0] ?? user?.user_metadata?.full_name?.split(' ')[0] ?? 'Amigo';
 
-  const handleClaim = () => {
-    setStatus('AWAITING_PAYMENT');
-    // In production: create Stripe checkout session
-    // For now, simulate payment success
-    navigate('/restore/processing');
+  const handleClaim = async () => {
+    if (!user) {
+      toast.error('Faça login para continuar');
+      navigate('/auth');
+      return;
+    }
+
+    setPaying(true);
+    try {
+      // Create order first
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          status: 'AWAITING_PAYMENT',
+          input_image_url: flow.imageUri,
+          customer_name: flow.customer?.fullName || user.user_metadata?.full_name,
+          customer_email: flow.customer?.email || user.email,
+          customer_phone: flow.customer?.phone,
+          original_price_cents: Math.round(flow.pricing.originalPrice * 100),
+          discount_price_cents: Math.round(flow.pricing.discountPrice * 100),
+          user_id: user.id,
+        })
+        .select('id')
+        .single();
+
+      if (orderError || !order) throw new Error(orderError?.message || 'Erro ao criar pedido');
+
+      setStatus('AWAITING_PAYMENT');
+
+      // Create Stripe checkout
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: { orderId: order.id },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de pagamento não retornada');
+      }
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      toast.error(err.message || 'Erro ao iniciar pagamento');
+      setPaying(false);
+    }
   };
 
   return (
@@ -121,9 +166,17 @@ const DiscountOffer = () => {
             >
               <Button
                 onClick={handleClaim}
+                disabled={paying}
                 className="w-full rounded-xl py-6 text-base font-bold gradient-accent text-accent-foreground shadow-accent animate-pulse-glow"
               >
-                QUERO MEU DESCONTO →
+                {paying ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Redirecionando…
+                  </>
+                ) : (
+                  'QUERO MEU DESCONTO →'
+                )}
               </Button>
             </motion.div>
           </motion.div>

@@ -4,9 +4,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RestoreFlowProvider } from "@/context/RestoreFlowContext";
+import { AuthProvider } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import LandingPage from "./pages/LandingPage";
 import Home from "./pages/Home";
+import Auth from "./pages/Auth";
 import RestoreUpload from "./pages/RestoreUpload";
 import RestoreForm from "./pages/RestoreForm";
 import DiscountOffer from "./pages/DiscountOffer";
@@ -23,25 +25,28 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <RestoreFlowProvider>
-        <BrowserRouter>
-          <div className="mx-auto max-w-lg min-h-screen">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/landing" element={<LandingPage />} />
-              <Route path="/restore" element={<RestoreUpload />} />
-              <Route path="/restore/form" element={<RestoreForm />} />
-              <Route path="/restore/offer" element={<DiscountOffer />} />
-              <Route path="/restore/processing" element={<Processing />} />
-              <Route path="/restore/result" element={<Result />} />
-              <Route path="/history" element={<OrdersHistory />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <BottomNav />
-          </div>
-        </BrowserRouter>
-      </RestoreFlowProvider>
+      <AuthProvider>
+        <RestoreFlowProvider>
+          <BrowserRouter>
+            <div className="mx-auto max-w-lg min-h-screen">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/landing" element={<LandingPage />} />
+                <Route path="/restore" element={<RestoreUpload />} />
+                <Route path="/restore/form" element={<RestoreForm />} />
+                <Route path="/restore/offer" element={<DiscountOffer />} />
+                <Route path="/restore/processing" element={<Processing />} />
+                <Route path="/restore/result" element={<Result />} />
+                <Route path="/history" element={<OrdersHistory />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <BottomNav />
+            </div>
+          </BrowserRouter>
+        </RestoreFlowProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
